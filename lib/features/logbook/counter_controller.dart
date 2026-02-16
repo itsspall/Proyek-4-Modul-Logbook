@@ -1,4 +1,9 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 class CounterController {
+  final String _userKey;
+  CounterController({required String username}) : _userKey = 'user_$username';
+
   int _counter = 0;
   int _step = 1;
   List<String> _history = [];
@@ -7,7 +12,7 @@ class CounterController {
   int get step => _step;
   List<String> get history => _history;
 
-  // Task 1
+  // Task 1: Modul 1
   void setStep(dynamic input) {
     // cek input
     if (input is String) {
@@ -20,7 +25,7 @@ class CounterController {
     }
   }
 
-  // Task 2
+  // Task 2: Modul 1
   void increment() {
     int oldVal = _counter;
     _counter = _counter + _step;
@@ -53,4 +58,20 @@ class CounterController {
     _history.clear();
     _addLog("Sistem di-reset");
   }
+
+  // Task 3: Modul 2
+  Future<void> loadCounter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _counter = prefs.getInt('$_userKey.counter') ?? 0;
+    _step = prefs.getInt('$_userKey.step') ?? 1;
+    _history = prefs.getStringList('$_userKey.history') ?? [];
+  }
+
+  Future<void> saveCounter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('$_userKey.counter', _counter);
+    await prefs.setInt('$_userKey.step', _step);
+    await prefs.setStringList('$_userKey.history', _history);
+  }
+
 }
