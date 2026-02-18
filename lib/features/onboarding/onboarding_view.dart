@@ -1,7 +1,6 @@
-// OnboardingView memiliki sebuah variabel int step = 1.
-// Logika: Jika tombol "Next" ditekan, step++. Jika step > 3, maka pindah ke LoginView menggunakan Navigator.pushReplacement.
 import 'package:flutter/material.dart';
 import 'package:logbook_app_001/features/auth/login_view.dart';
+
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
 
@@ -11,11 +10,18 @@ class OnboardingView extends StatefulWidget {
 
 class _OnboardingViewState extends State<OnboardingView> {
   final PageController _pageController = PageController();
-  int _step = 1;
+  int _step = 0; 
+
   final List<String> _imagesOnboarding = [
     'assets/images/gambar_1.jpg',
     'assets/images/gambar_2.jpg',
     'assets/images/gambar_3.jpg',
+  ];
+
+  final List<String> _descriptionsOnboarding = [
+    'Mulai catat setiap aktivitas harianmu dengan mudah dan cepat tanpa ribet.',
+    'Lihat kembali riwayat perjalanan dan evaluasi progresmu setiap minggunya.',
+    'Capai target belajarmu dan jadikan setiap langkah kecil sebagai pencapaian besar!',
   ];
 
   void _nextStep() {
@@ -58,10 +64,9 @@ class _OnboardingViewState extends State<OnboardingView> {
                         // Tampilkan Gambar dari Assets
                         Image.asset(
                           _imagesOnboarding[index],
-                          height: 300, // Atur tinggi gambar agar rapi
+                          height: 300,
                         ),
                         const SizedBox(height: 20),
-                        // Judul Opsional sesuai gambar
                         Text(
                           "Langkah ${index + 1}",
                           style: const TextStyle(
@@ -71,10 +76,14 @@ class _OnboardingViewState extends State<OnboardingView> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          "Deskripsi singkat tentang fitur aplikasi di sini.",
+                        
+                        Text(
+                          _descriptionsOnboarding[index],
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),

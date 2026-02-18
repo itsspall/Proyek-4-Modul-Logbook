@@ -40,7 +40,6 @@ class _CounterViewState extends State<CounterView> {
             IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () {
-                // 1. Munculkan Dialog Konfirmasi
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
@@ -48,18 +47,14 @@ class _CounterViewState extends State<CounterView> {
                       title: const Text("Konfirmasi Logout"),
                       content: const Text("Apakah Anda yakin? Data yang belum disimpan mungkin akan hilang."),
                       actions: [
-                        // Tombol Batal
                         TextButton(
-                          onPressed: () => Navigator.pop(context), // Menutup dialog saja
+                          onPressed: () => Navigator.pop(context),
                           child: const Text("Batal"),
                         ),
-                        // Tombol Ya, Logout
                         TextButton(
                           onPressed: () {
-                            // Menutup dialog
                             Navigator.pop(context); 
                             
-                            // 2. Navigasi kembali ke Onboarding (Membersihkan Stack)
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(builder: (context) => const OnboardingView()),
