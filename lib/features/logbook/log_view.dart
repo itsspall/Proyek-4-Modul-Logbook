@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logbook_app_001/features/logbook/log_controller.dart';
 import 'package:logbook_app_001/features/logbook/models/log_model.dart';
+import 'package:logbook_app_001/features/logbook/widgets/log_item_widget.dart';
 import 'package:logbook_app_001/features/onboarding/onboarding_view.dart';
 
 class LogView extends StatefulWidget {
@@ -160,7 +161,6 @@ class _LogViewState extends State<LogView> {
             },
           ),
         ],
-
       ),
       body: ValueListenableBuilder<List<LogModel>>(
         valueListenable: _controller.logsNotifier,
@@ -172,67 +172,39 @@ class _LogViewState extends State<LogView> {
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: logs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final log = logs[index];
 
-              return Card(
-                child: ListTile(
-                  title: Text(log.title),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(log.description),
-                      const SizedBox(height: 6),
-                      Text(
-                        log.date,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showEditLogDialog(index, log),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                title: const Text("Konfirmasi Hapus"),
-                                content: const Text("Apakah Anda yakin ingin menghapus catatan ini?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(dialogContext),
-                                    child: const Text("Batal"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      // Simpan referensi indeks sebelum dialog ditutup sepenuhnya
-                                      final targetIndex = index;
-                                      _controller.deleteLog(targetIndex);
-                                      Navigator.pop(dialogContext); // Tutup dialog
-                                    },
-                                    child: const Text("Ya, Hapus", style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
-                              );
-                            }  
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+              return LogItemWidget(
+                log: log,
+                index: index,
+                onEdit: () => _showEditLogDialog(index, log),
+                onDelete: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return AlertDialog(
+                        title: const Text("Konfirmasi Hapus"),
+                        content: const Text("Apakah Anda yakin ingin menghapus catatan ini?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            child: const Text("Batal"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              final targetIndex = index;
+                              _controller.deleteLog(targetIndex);
+                              Navigator.pop(dialogContext);
+                            },
+                            child: const Text("Ya, Hapus", style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      );
+                    }  
+                  );
+                },
               );
             },
           );
