@@ -93,15 +93,39 @@ class _CounterViewState extends State<CounterView> {
     
     return Scaffold(
       appBar: AppBar(
-        // Gunakan widget.username untuk menampilkan data dari kelas utama
         title: Text("Logbook: ${widget.username}"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          // Kita siapkan tombol logout di sini untuk Fase 3 nanti
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              // Logika logout nanti di Fase 3
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Konfirmasi Logout"),
+                    content: const Text("Apakah Anda yakin? Data yang belum disimpan mungkin akan hilang."),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Batal"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); 
+                          
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const OnboardingView()),
+                            (route) => false,
+                          );
+                        },
+                        child: const Text("Ya, Keluar", style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         ],
