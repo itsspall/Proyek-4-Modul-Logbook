@@ -19,7 +19,25 @@ class LogItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        title: Text(log.title),
+        title: Row(
+          children: [
+            Expanded(child: Text(log.title)),
+            Chip(
+              label: Text(
+                log.category,
+                style: const TextStyle(fontSize: 12, color: Colors.white),
+              ),
+              backgroundColor: log.category.toLowerCase() == 'Pribadi'
+                  ? Colors.blue.shade300
+                  : log.category.toLowerCase() == 'Tugas Kuliah'
+                      ? Colors.green.shade300
+                      : log.category.toLowerCase() == 'Pekerjaan'
+                          ? Colors.orange.shade300
+                          : const Color.fromARGB(255, 255, 0, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            ),
+          ],
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

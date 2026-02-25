@@ -45,7 +45,6 @@ class _OnboardingViewState extends State<OnboardingView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Area untuk PageView
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -61,7 +60,6 @@ class _OnboardingViewState extends State<OnboardingView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Tampilkan Gambar dari Assets
                         Image.asset(
                           _imagesOnboarding[index],
                           height: 300,
