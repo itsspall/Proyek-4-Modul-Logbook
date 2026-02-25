@@ -6,9 +6,11 @@ import 'models/log_model.dart';
 
 class LogController {
   final ValueNotifier<List<LogModel>> logsNotifier = ValueNotifier([]);
-  static const String _storageKey = 'user_logs_data';
+  late String _storageKey;
+  final String username;
 
-  LogController() {
+  LogController({required this.username}) {
+    _storageKey = 'user_logs_data_$username';
     loadFromDisk();
   }
 

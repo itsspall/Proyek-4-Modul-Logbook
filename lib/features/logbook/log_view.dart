@@ -13,12 +13,18 @@ class LogView extends StatefulWidget {
 }
 
 class _LogViewState extends State<LogView> {
-  final LogController _controller = LogController();
+  late final LogController _controller;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   
   final List<String> _categories = ['Pribadi', 'Tugas Kuliah', 'Pekerjaan', 'Urgent'];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = LogController(username: widget.username);
+  }
 
   @override
   void dispose() {
