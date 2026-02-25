@@ -27,11 +27,11 @@ class LogItemWidget extends StatelessWidget {
                 log.category,
                 style: const TextStyle(fontSize: 12, color: Colors.white),
               ),
-              backgroundColor: log.category.toLowerCase() == 'Pribadi'
+              backgroundColor: log.category.toLowerCase() == 'pribadi'
                   ? Colors.blue.shade300
-                  : log.category.toLowerCase() == 'Tugas Kuliah'
+                  : log.category.toLowerCase() == 'tugas kuliah'
                       ? Colors.green.shade300
-                      : log.category.toLowerCase() == 'Pekerjaan'
+                      : log.category.toLowerCase() == 'pekerjaan'
                           ? Colors.orange.shade300
                           : const Color.fromARGB(255, 255, 0, 0),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

@@ -35,24 +35,44 @@ class _LogViewState extends State<LogView> {
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) {
           return AlertDialog(
-            title: const Text("Tambah Catatan Baru"),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Ubah bentuk dialog
+            title: Text("Tambah Catatan Baru", style: TextStyle(color: Colors.blue.shade900, fontWeight: FontWeight.bold)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: _titleController,
-                  decoration: const InputDecoration(hintText: "Judul Catatan"),
+                  decoration: InputDecoration(
+                    hintText: "Judul Catatan",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                    ),
+                  ),
                 ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _contentController,
-                  decoration: const InputDecoration(hintText: "Isi Deskripsi"),
+                  decoration: InputDecoration(
+                    hintText: "Isi Deskripsi",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Kategori",
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                    ),
                   ),
                   items: _categories.map((String category) {
                     return DropdownMenuItem(value: category, child: Text(category));
@@ -73,9 +93,14 @@ class _LogViewState extends State<LogView> {
                   _contentController.clear();
                   Navigator.pop(context);
                 },
-                child: const Text("Batal"),
+                child: const Text("Batal", style: TextStyle(color: Colors.grey)),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
                 onPressed: () {
                   if (_titleController.text.isNotEmpty) {
                     _controller.addLog(
@@ -110,24 +135,44 @@ class _LogViewState extends State<LogView> {
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) {
           return AlertDialog(
-            title: const Text("Edit Catatan"),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Ubah bentuk dialog
+            title: Text("Edit Catatan", style: TextStyle(color: Colors.blue.shade900, fontWeight: FontWeight.bold)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: _titleController,
-                  decoration: const InputDecoration(hintText: "Judul Catatan"),
+                  decoration: InputDecoration(
+                    hintText: "Judul Catatan",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                    ),
+                  ),
                 ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _contentController,
-                  decoration: const InputDecoration(hintText: "Isi Deskripsi"),
+                  decoration: InputDecoration(
+                    hintText: "Isi Deskripsi",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Kategori",
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                    ),
                   ),
                   items: _categories.map((String category) {
                     return DropdownMenuItem(value: category, child: Text(category));
@@ -147,9 +192,14 @@ class _LogViewState extends State<LogView> {
                   _contentController.clear();
                   Navigator.pop(context);
                 },
-                child: const Text("Batal"),
+                child: const Text("Batal", style: TextStyle(color: Colors.grey)),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
                 onPressed: () {
                   if (_titleController.text.isNotEmpty) {
                     _controller.updateLog(
@@ -176,9 +226,13 @@ class _LogViewState extends State<LogView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue.shade50, // Latar belakang biru muda
       appBar: AppBar(
-        title: Text("Logbook: ${widget.username}"),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text("Logbook: ${widget.username}", style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue.shade800, // Warna biru tua untuk AppBar
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -187,6 +241,7 @@ class _LogViewState extends State<LogView> {
                 context: context,
                 builder: (BuildContext dialogContext) {
                   return AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     title: const Text("Konfirmasi Logout"),
                     content: const Text("Apakah Anda yakin ingin keluar?"),
                     actions: [
@@ -219,10 +274,19 @@ class _LogViewState extends State<LogView> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               onChanged: (value) => _controller.searchLog(value),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: "Cari Catatan...",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                ),
               ),
             ),
           ),
@@ -233,13 +297,20 @@ class _LogViewState extends State<LogView> {
               builder: (context, logs, _) {
                 
                 if (logs.isEmpty) {
-                  return const Center(
-                    child: Text("Belum ada catatan ditemukan.", style: TextStyle(color: Colors.grey)),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inbox_rounded, size: 80, color: Colors.blue.shade200),
+                        const SizedBox(height: 16),
+                        Text("Belum ada catatan ditemukan.", style: TextStyle(color: Colors.blue.shade700, fontSize: 16)),
+                      ],
+                    ),
                   );
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: logs.length,
                   separatorBuilder: (_, index) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
@@ -249,7 +320,10 @@ class _LogViewState extends State<LogView> {
                       key: Key(log.date),
                       direction: DismissDirection.endToStart,
                       background: Container(
-                        color: Colors.red,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
                         child: const Icon(Icons.delete, color: Colors.white),
@@ -269,6 +343,7 @@ class _LogViewState extends State<LogView> {
                             context: context,
                             builder: (BuildContext dialogContext) {
                               return AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 title: const Text("Konfirmasi Hapus"),
                                 content: const Text("Apakah Anda yakin ingin menghapus catatan ini?"),
                                 actions: [
@@ -299,8 +374,10 @@ class _LogViewState extends State<LogView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddLogDialog,
-        backgroundColor: Colors.deepPurple.shade100,
-        child: const Icon(Icons.add, color: Colors.deepPurple),
+        backgroundColor: Colors.blue.shade700,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        child: const Icon(Icons.add),
       ),
     );
   }

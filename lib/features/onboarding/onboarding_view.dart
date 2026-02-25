@@ -24,6 +24,15 @@ class _OnboardingViewState extends State<OnboardingView> {
     'Capai target belajarmu dan jadikan setiap langkah kecil sebagai pencapaian besar!',
   ];
 
+  // Menampilkan gambar onboarding pertama kali agar tidak delay saat ditampilkan
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (String path in _imagesOnboarding) {
+      precacheImage(AssetImage(path), context);
+    }
+  }
+
   void _nextStep() {
     if (_step < _imagesOnboarding.length - 1) {
       _pageController.nextPage(
@@ -41,6 +50,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Latar belakang putih bersih
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -67,10 +77,10 @@ class _OnboardingViewState extends State<OnboardingView> {
                         const SizedBox(height: 20),
                         Text(
                           "Langkah ${index + 1}",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24, 
                             fontWeight: FontWeight.bold,
-                            color: Colors.deepPurple
+                            color: Colors.blue.shade800
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -108,10 +118,11 @@ class _OnboardingViewState extends State<OnboardingView> {
                   ElevatedButton(
                     onPressed: _nextStep,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: Colors.blue.shade700,
                       foregroundColor: Colors.white,
                       shape: const CircleBorder(),
                       padding: const EdgeInsets.all(20),
+                      elevation: 4,
                     ),
                     child: const Icon(Icons.arrow_forward),
                   ),
@@ -131,7 +142,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       height: 10,
       width: _step == index ? 25 : 10,
       decoration: BoxDecoration(
-        color: _step == index ? Colors.deepPurple : Colors.grey.shade300,
+        color: _step == index ? Colors.blue.shade700 : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(10),
       ),
     );

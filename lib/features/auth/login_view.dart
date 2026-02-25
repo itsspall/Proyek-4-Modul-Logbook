@@ -73,54 +73,116 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login Page")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _userController,
-              decoration: const InputDecoration(labelText: "Username"),
+      backgroundColor: Colors.blue.shade50, // Latar belakang biru sangat muda
+      appBar: AppBar(
+        title: const Text("Login Page", style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue.shade800, // Biru tua untuk AppBar
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: Center(
+        child: SingleChildScrollView( // Mencegah error layout saat keyboard muncul
+          padding: const EdgeInsets.all(24.0),
+          child: Card(
+            elevation: 8,
+            shadowColor: Colors.blue.shade200,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            TextField(
-              controller: _passController,
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                labelText: "Password",
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+            child: Padding(
+              padding: const EdgeInsets.all(28.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Ikon besar di atas form
+                  Icon(
+                    Icons.lock_person_rounded, 
+                    size: 80, 
+                    color: Colors.blue.shade700
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
+                  const SizedBox(height: 30),
+
+                  TextField(
+                    controller: _userController,
+                    decoration: InputDecoration(
+                      labelText: "Username",
+                      prefixIcon: Icon(Icons.person, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  TextField(
+                    controller: _passController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: "Password",
+                      prefixIcon: Icon(Icons.lock, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.blue.shade700,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  
+                  // TOMBOL LOGIN
+                  SizedBox(
+                    width: double.infinity, // Tombol memenuhi lebar Card
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _controller.isLocked ? null : _handleLogin, 
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Masuk",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      )
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  // TEKS COUNTDOWN
+                  if (_controller.isLocked)
+                    Text(
+                      "Coba lagi dalam $_countdown detik",
+                      style: const TextStyle(
+                        color: Colors.red, 
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16
+                      ),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            
-            // TOMBOL LOGIN
-            ElevatedButton(
-              onPressed: _controller.isLocked ? null : _handleLogin, 
-              child: const Text("Masuk")
-            ),
-
-            const SizedBox(height: 15),
-
-            // TEKS COUNTDOWN
-            if (_controller.isLocked)
-              Text(
-                "Coba lagi dalam $_countdown detik",
-                style: const TextStyle(
-                  color: Colors.red, 
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );

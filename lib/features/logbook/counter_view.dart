@@ -19,6 +19,7 @@ class _CounterViewState extends State<CounterView> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text("Konfirmasi Reset"),
           content: const Text("Apakah Anda yakin ingin menghqpus semua hitungan dan riwayat?"),
           actions: [
@@ -44,6 +45,7 @@ class _CounterViewState extends State<CounterView> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       title: const Text("Konfirmasi Logout"),
                       content: const Text("Apakah Anda yakin? Data yang belum disimpan mungkin akan hilang."),
                       actions: [
@@ -92,9 +94,13 @@ class _CounterViewState extends State<CounterView> {
   Widget build(BuildContext context) {
     
     return Scaffold(
+      backgroundColor: Colors.blue.shade50, // Latar belakang biru muda
       appBar: AppBar(
-        title: Text("Logbook: ${widget.username}"),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text("Logbook: ${widget.username}", style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue.shade800, // Biru tua
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -103,6 +109,7 @@ class _CounterViewState extends State<CounterView> {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     title: const Text("Konfirmasi Logout"),
                     content: const Text("Apakah Anda yakin? Data yang belum disimpan mungkin akan hilang."),
                     actions: [
@@ -134,17 +141,54 @@ class _CounterViewState extends State<CounterView> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text("Total Hitungan:", style: const TextStyle(fontSize: 18)),
-            Text('${_controller.value}', style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold)),
+            // CARD UNTUK ANGKA UTAMA
+            Card(
+              elevation: 6,
+              shadowColor: Colors.blue.shade200,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                child: Column(
+                  children: [
+                    Text("Total Hitungan:", style: TextStyle(fontSize: 18, color: Colors.blue.shade700, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 10),
+                    Text(
+                      '${_controller.value}', 
+                      style: TextStyle(fontSize: 70, fontWeight: FontWeight.bold, color: Colors.blue.shade900)
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             
+            // INPUT TEXTFIELD
             TextField(
               controller: _stepInput,
-              decoration: const InputDecoration(labelText: "Masukkan Nilai Step"),
+              decoration: InputDecoration(
+                labelText: "Masukkan Nilai Step",
+                prefixIcon: Icon(Icons.numbers, color: Colors.blue.shade700),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                ),
+              ),
               keyboardType: TextInputType.number,
               onChanged: (val) => _controller.setStep(val),
             ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
+            
+            // BARIS TOMBOL (BUTTONS)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -153,41 +197,87 @@ class _CounterViewState extends State<CounterView> {
                     setState(() => _controller.increment());
                     await _controller.saveCounter();
                   },
-                  child: const Text("+"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text("+", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     setState(() => _controller.decrement());
                     await _controller.saveCounter();
                   },
-                  child: const Text("-"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade500,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text("-", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     _showResetDialog();
                     await _controller.saveCounter();
                   },
-                  child: const Text("Reset"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text("Reset", style: TextStyle(fontSize: 16)),
                 ),
               ],
             ),
             
-            const Divider(height: 40),
-            const Text("5 Aktivitas Terakhir:", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            const Divider(height: 40, thickness: 1.5),
             
+            // JUDUL RIWAYAT
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "5 Aktivitas Terakhir:", 
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue.shade900)
+              ),
+            ),
+            const SizedBox(height: 10),
+            
+            // LIST RIWAYAT
             Expanded(
               child: ListView.builder(
                 itemCount: _controller.history.length,
                 itemBuilder: (context, index) {
                   final log = _controller.history[index];
                   Color itemColor = Colors.black87;
-                  if (log.contains("Tambah")) itemColor = Colors.green; // Untuk log tambah
-                  if (log.contains("Kurang")) itemColor = Colors.red; // Untuk log kurang
+                  Color iconBgColor = Colors.grey.shade200;
+
+                  if (log.contains("Tambah")) {
+                    itemColor = Colors.green.shade700; // Untuk log tambah
+                    iconBgColor = Colors.green.shade50;
+                  } 
+                  if (log.contains("Kurang")) {
+                    itemColor = Colors.red.shade700; // Untuk log kurang
+                    iconBgColor = Colors.red.shade50;
+                  }
 
                   return Card(
+                    elevation: 0,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
-                      leading: Icon(Icons.history, size: 16, color: itemColor),
-                      title: Text(log, style: TextStyle(fontSize: 12, color: itemColor)),
+                      leading: CircleAvatar(
+                        backgroundColor: iconBgColor,
+                        child: Icon(Icons.history, size: 20, color: itemColor),
+                      ),
+                      title: Text(log, style: TextStyle(fontSize: 14, color: itemColor, fontWeight: FontWeight.w500)),
                     ),
                   );
                 },
