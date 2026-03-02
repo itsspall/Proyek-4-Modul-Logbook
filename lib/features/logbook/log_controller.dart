@@ -1,86 +1,87 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'models/log_model.dart';
+import 'package:logbook_app_053/features/logbook/models/log_model.dart';
+import 'package:logbook_app_053/services/mongo_service.dart';
+import 'package:logbook_app_053/helpers/log_helper.dart';
 
 class LogController {
   final ValueNotifier<List<LogModel>> logsNotifier = ValueNotifier([]);
-  late String _storageKey;
-  final String username;
-
-  LogController({required this.username}) {
-    _storageKey = 'user_logs_data_$username';
-    loadFromDisk();
+  final ValueNotifier<List<LogModel>> filteredLogsNotifier = ValueNotifier([]);
+  
+  LogController({required String username}) { 
+    // Data tidak lagi hardcoded, tapi diambil dari MongoDB Atlas berdasarkan username
   }
 
-  final ValueNotifier<List<LogModel>> filteredLogs = ValueNotifier([]);
-
-  ValueListenable<List<LogModel>> get filteredLogsNotifier => filteredLogs;
-
-  void addLog(String title, String desc, [String category = 'Pribadi']) {
-    final newLog = LogModel(
-      title: title,
-      description: desc,
-      date: DateTime.now().toString(),
-      category: category,
-    );
-
-    logsNotifier.value = [...logsNotifier.value, newLog];
-    filteredLogs.value = logsNotifier.value;
-    saveToDisk();
-  }
-
-  void updateLog(int index, String title, String desc, [String category = 'Pribadi']) {
-    final currentLogs = List<LogModel>.from(logsNotifier.value);
-    currentLogs[index] = LogModel(
-      title: title,
-      description: desc,
-      date: currentLogs[index].date,
-      category: category,
-    );
-
-    logsNotifier.value = currentLogs;
-    filteredLogs.value = logsNotifier.value;
-    saveToDisk();
-  }
-
-  void removeLog(int index) {
-    final currentLogs = List<LogModel>.from(logsNotifier.value);
-    currentLogs.removeAt(index);
-    logsNotifier.value = currentLogs;
-    filteredLogs.value = logsNotifier.value;
-    saveToDisk();
-  }
-
-  Future<void> saveToDisk() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encodedData = jsonEncode(logsNotifier.value.map((e) => e.toMap()).toList());
-    await prefs.setString(_storageKey, encodedData);
-  }
-
+  // READ: Membaca dari MongoDB Atlas
   Future<void> loadFromDisk() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? data = prefs.getString(_storageKey);
-    if (data != null) {
-      final List decoded = jsonDecode(data);
-      logsNotifier.value = decoded.map((e) => LogModel.fromMap(e)).toList();
+    final cloudData = await MongoService().getLogs();
+    logsNotifier.value = cloudData;
+    filteredLogsNotifier.value = cloudData;
+  }
+
+  // CREATE: Menambah data ke Cloud
+  Future<void> addLog(String title, String desc, String category) async {
+    final newLog = LogModel(
+      title: title, 
+      description: desc, 
+      date: DateTime.now().toString(),
+      category: category
+    );
+    
+    try {
+      await MongoService().insertLog(newLog);
+      await loadFromDisk();
+      await LogHelper.writeLog("SUCCESS: Tambah data ke Cloud", source: "log_controller.dart", level: 2);
+    } catch (e) {
+      await LogHelper.writeLog("ERROR: Gagal Tambah - $e", source: "log_controller.dart", level: 1);
     }
-    filteredLogs.value = logsNotifier.value;
   }
 
-  void deleteLog(int index) {
-    removeLog(index);
+  // UPDATE: Mengedit data di Cloud
+  Future<void> updateLog(int index, String title, String desc, String category) async {
+    final currentLogs = List<LogModel>.from(logsNotifier.value);
+    final oldLog = currentLogs[index];
+
+    final updatedLog = LogModel(
+      id: oldLog.id,
+      title: title, 
+      description: desc, 
+      date: oldLog.date, 
+      category: category 
+    );
+    
+    try {
+      await MongoService().updateLog(updatedLog); // Update di Cloud
+      await loadFromDisk();
+      await LogHelper.writeLog("SUCCESS: Update '${oldLog.title}' Berhasil", source: "log_controller.dart", level: 2);
+    } catch (e) {
+      await LogHelper.writeLog("ERROR: Gagal Update - $e", source: "log_controller.dart", level: 1);
+    }
   }
 
+  // DELETE: Menghapus data di Cloud
+  Future<void> removeLog(int index) async {
+    final currentLogs = List<LogModel>.from(logsNotifier.value);
+    final targetLog = currentLogs[index];
+
+    try {
+      if (targetLog.id == null) throw Exception("ID tidak ditemukan");
+      
+      await MongoService().deleteLog(targetLog.id!); // Hapus di Cloud
+      await loadFromDisk(); // Refresh UI
+      await LogHelper.writeLog("SUCCESS: Hapus '${targetLog.title}' Berhasil", source: "log_controller.dart", level: 2);
+    } catch (e) {
+      await LogHelper.writeLog("ERROR: Gagal Hapus - $e", source: "log_controller.dart", level: 1);
+    }
+  }
+
+  // FITUR PENCARIAN
   void searchLog(String query) {
     if (query.isEmpty) {
-      filteredLogs.value = logsNotifier.value;
+      filteredLogsNotifier.value = logsNotifier.value;
     } else {
-      filteredLogs.value = logsNotifier.value
+      filteredLogsNotifier.value = logsNotifier.value
           .where((log) => log.title.toLowerCase().contains(query.toLowerCase()))
           .toList();
     }
   }
-
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:logbook_app_001/features/logbook/models/log_model.dart';
+import 'package:logbook_app_053/features/logbook/models/log_model.dart';
 
 class LogItemWidget extends StatelessWidget {
   final LogModel log;

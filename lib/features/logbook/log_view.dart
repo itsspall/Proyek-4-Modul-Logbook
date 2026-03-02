@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:logbook_app_001/features/logbook/log_controller.dart';
-import 'package:logbook_app_001/features/logbook/models/log_model.dart';
-import 'package:logbook_app_001/features/logbook/widgets/log_item_widget.dart';
-import 'package:logbook_app_001/features/onboarding/onboarding_view.dart';
+import 'package:logbook_app_053/features/logbook/log_controller.dart';
+import 'package:logbook_app_053/features/logbook/models/log_model.dart';
+import 'package:logbook_app_053/features/logbook/widgets/log_item_widget.dart';
+import 'package:logbook_app_053/features/onboarding/onboarding_view.dart';
+// TAMBAHAN IMPORT UNTUK KONEKSI CLOUD
+import 'package:logbook_app_053/services/mongo_service.dart';
+import 'package:logbook_app_053/helpers/log_helper.dart';
 
 class LogView extends StatefulWidget {
   final String username;
@@ -20,10 +23,41 @@ class _LogViewState extends State<LogView> {
   
   final List<String> _categories = ['Pribadi', 'Tugas Kuliah', 'Pekerjaan', 'Urgent'];
 
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
     _controller = LogController(username: widget.username);
+    
+    Future.microtask(() => _initDatabase());
+  }
+
+  Future<void> _initDatabase() async {
+    setState(() => _isLoading = true);
+    try {
+      await LogHelper.writeLog("UI: Memulai inisialisasi database...", source: "log_view.dart");
+      await MongoService().connect().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw Exception("Koneksi Cloud Timeout. Periksa sinyal atau IP Whitelist."),
+      );
+      
+      await LogHelper.writeLog("UI: Koneksi MongoService BERHASIL.", source: "log_view.dart");
+      
+      // Ambil data dari internet
+      await _controller.loadFromDisk(); 
+    } catch (e) {
+      await LogHelper.writeLog("UI: Error - $e", source: "log_view.dart", level: 1);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Masalah: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -41,7 +75,7 @@ class _LogViewState extends State<LogView> {
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Ubah bentuk dialog
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), 
             title: Text("Tambah Catatan Baru", style: TextStyle(color: Colors.blue.shade900, fontWeight: FontWeight.bold)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -84,7 +118,6 @@ class _LogViewState extends State<LogView> {
                     return DropdownMenuItem(value: category, child: Text(category));
                   }).toList(),
                   onChanged: (newValue) {
-                    // Update kategori yang dipilih di dalam dialog
                     setStateDialog(() {
                       selectedCategory = newValue!;
                     });
@@ -112,7 +145,7 @@ class _LogViewState extends State<LogView> {
                     _controller.addLog(
                       _titleController.text,
                       _contentController.text,
-                      selectedCategory, // Kirim kategori yang dipilih
+                      selectedCategory, 
                     );
 
                     _titleController.clear();
@@ -133,7 +166,6 @@ class _LogViewState extends State<LogView> {
     _titleController.text = log.title;
     _contentController.text = log.description;
     
-    // Cek apakah data lama punya kategori yang valid, jika tidak kembalikan ke default
     String selectedCategory = _categories.contains(log.category) ? log.category : _categories.first;
 
     showDialog(
@@ -141,7 +173,7 @@ class _LogViewState extends State<LogView> {
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Ubah bentuk dialog
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), 
             title: Text("Edit Catatan", style: TextStyle(color: Colors.blue.shade900, fontWeight: FontWeight.bold)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -212,7 +244,7 @@ class _LogViewState extends State<LogView> {
                       index,
                       _titleController.text,
                       _contentController.text,
-                      selectedCategory, // Kirim kategori yang diupdate
+                      selectedCategory, 
                     );
 
                     _titleController.clear();
@@ -232,10 +264,10 @@ class _LogViewState extends State<LogView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade50, // Latar belakang biru muda
+      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
         title: Text("Logbook: ${widget.username}", style: const TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue.shade800, // Warna biru tua untuk AppBar
+        backgroundColor: Colors.blue.shade800, 
         foregroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
@@ -302,14 +334,27 @@ class _LogViewState extends State<LogView> {
               valueListenable: _controller.filteredLogsNotifier,
               builder: (context, logs, _) {
                 
+                if (_isLoading) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: Colors.blue.shade700),
+                        const SizedBox(height: 16),
+                        Text("Menghubungkan ke MongoDB Atlas...", style: TextStyle(color: Colors.blue.shade700)),
+                      ],
+                    ),
+                  );
+                }
+
                 if (logs.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inbox_rounded, size: 80, color: Colors.blue.shade200),
+                        Icon(Icons.cloud_off_rounded, size: 80, color: Colors.blue.shade200),
                         const SizedBox(height: 16),
-                        Text("Belum ada catatan ditemukan.", style: TextStyle(color: Colors.blue.shade700, fontSize: 16)),
+                        Text("Belum ada catatan di Cloud.", style: TextStyle(color: Colors.blue.shade700, fontSize: 16)),
                       ],
                     ),
                   );
@@ -337,7 +382,7 @@ class _LogViewState extends State<LogView> {
                       onDismissed: (direction) {
                         _controller.removeLog(index); 
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Catatan dihapus")),
+                          const SnackBar(content: Text("Catatan dihapus dari Cloud")),
                         );
                       },
                       child: LogItemWidget(
@@ -351,7 +396,7 @@ class _LogViewState extends State<LogView> {
                               return AlertDialog(
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 title: const Text("Konfirmasi Hapus"),
-                                content: const Text("Apakah Anda yakin ingin menghapus catatan ini?"),
+                                content: const Text("Hapus permanen dari Cloud?"),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(dialogContext),

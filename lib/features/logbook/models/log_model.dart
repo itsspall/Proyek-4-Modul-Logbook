@@ -1,19 +1,24 @@
+import 'package:mongo_dart/mongo_dart.dart';
+
 class LogModel {
+  final ObjectId? id;
   final String title;
   final String date;
   final String description;
   final String category;
 
   LogModel({
+    this.id, 
     required this.title,
     required this.date,
     required this.description,
     required this.category,
   });
 
-  // Konversi JSON ke Object
+  // [REVERT] 
   factory LogModel.fromMap(Map<String, dynamic> map) {
     return LogModel(
+      id: map['_id'] as ObjectId?, // Ambil ID dari MongoDB
       title: map['title'] ?? '',
       date: map['date'] ?? '',
       description: map['description'] ?? '',
@@ -21,9 +26,10 @@ class LogModel {
     );
   }
 
-  // Konversi Object ke JSON
+  // [CONVERT]
   Map<String, dynamic> toMap() {
     return {
+      '_id': id ?? ObjectId(),
       'title': title,
       'date': date,
       'description': description,

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:logbook_app_001/features/onboarding/onboarding_view.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:logbook_app_053/features/onboarding/onboarding_view.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
