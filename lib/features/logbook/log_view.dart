@@ -3,7 +3,6 @@ import 'package:logbook_app_053/features/logbook/log_controller.dart';
 import 'package:logbook_app_053/features/logbook/models/log_model.dart';
 import 'package:logbook_app_053/features/logbook/widgets/log_item_widget.dart';
 import 'package:logbook_app_053/features/onboarding/onboarding_view.dart';
-// TAMBAHAN IMPORT UNTUK KONEKSI CLOUD
 import 'package:logbook_app_053/services/mongo_service.dart';
 import 'package:logbook_app_053/helpers/log_helper.dart';
 
@@ -24,6 +23,7 @@ class _LogViewState extends State<LogView> {
   final List<String> _categories = ['Pribadi', 'Tugas Kuliah', 'Pekerjaan', 'Urgent'];
 
   bool _isLoading = false;
+  bool _hasConnectionError = false;
 
   @override
   void initState() {
@@ -34,7 +34,10 @@ class _LogViewState extends State<LogView> {
   }
 
   Future<void> _initDatabase() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _hasConnectionError = false;
+    });
     try {
       await LogHelper.writeLog("UI: Memulai inisialisasi database...", source: "log_view.dart");
       await MongoService().connect().timeout(
@@ -45,10 +48,15 @@ class _LogViewState extends State<LogView> {
       await LogHelper.writeLog("UI: Koneksi MongoService BERHASIL.", source: "log_view.dart");
       
       // Ambil data dari internet
-      await _controller.loadFromDisk(); 
+      await _controller.loadFromDisk();
+      
+      if (mounted) {
+        setState(() => _hasConnectionError = false);
+      }
     } catch (e) {
       await LogHelper.writeLog("UI: Error - $e", source: "log_view.dart", level: 1);
       if (mounted) {
+        setState(() => _hasConnectionError = true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Masalah: $e"), backgroundColor: Colors.red),
         );
@@ -348,6 +356,36 @@ class _LogViewState extends State<LogView> {
                 }
 
                 if (logs.isEmpty) {
+                  if (_hasConnectionError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.wifi_off, size: 80, color: Colors.red.shade300),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Kamu sedang offline.",
+                            style: TextStyle(color: Colors.red.shade700, fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Gagal terhubung ke Cloud!",
+                            style: TextStyle(color: Colors.red.shade600, fontSize: 14),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _initDatabase,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text("Coba Lagi"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade700,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -360,63 +398,79 @@ class _LogViewState extends State<LogView> {
                   );
                 }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: logs.length,
-                  separatorBuilder: (_, index) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final log = logs[index];
-
-                    return Dismissible(
-                      key: Key(log.date),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      onDismissed: (direction) {
-                        _controller.removeLog(index); 
+                return RefreshIndicator(
+                  color: Colors.blue.shade700,
+                  // FUNGSI SAAT LAYAR DIUSAP KE BAWAH
+                  onRefresh: () async {
+                    try {
+                      // Koneksi ulang ke MongoDB
+                      await MongoService().connect().timeout(
+                        const Duration(seconds: 15),
+                        onTimeout: () => throw Exception("Timeout koneksi ke Cloud"),
+                      );
+                      await _controller.loadFromDisk();
+                      
+                      if (context.mounted) {
+                        setState(() => _hasConnectionError = false);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Catatan dihapus dari Cloud")),
+                          const SnackBar(content: Text("Data berhasil diperbarui dari Cloud"), backgroundColor: Colors.green),
                         );
-                      },
-                      child: LogItemWidget(
-                        log: log,
-                        index: index,
-                        onEdit: () => _showEditLogDialog(index, log),
-                        onDelete: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                title: const Text("Konfirmasi Hapus"),
-                                content: const Text("Hapus permanen dari Cloud?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(dialogContext),
-                                    child: const Text("Batal"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      _controller.removeLog(index);
-                                      Navigator.pop(dialogContext);
-                                    },
-                                    child: const Text("Ya, Hapus", style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
-                              );
-                            }  
+                      }
+                    } catch (e) {
+                      // Tampilkan pesan error
+                      if (context.mounted) {
+                        setState(() => _hasConnectionError = true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(Icons.wifi_off, color: Colors.white),
+                                SizedBox(width: 10),
+                                Expanded(child: Text("Kamu sedang offline. Gagal terhubung ke Cloud!")),
+                              ],
+                            ), 
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    itemCount: logs.length,
+                    separatorBuilder: (_, index) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final log = logs[index];
+
+                      return Dismissible(
+                        key: Key(log.date),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        onDismissed: (direction) {
+                          _controller.removeLog(index); 
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Catatan dihapus dari Cloud")),
                           );
                         },
-                      ),
-                    );
-                  },
+                        child: LogItemWidget(
+                          log: log,
+                          index: index,
+                          onEdit: () => _showEditLogDialog(index, log),
+                          onDelete: () {
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),

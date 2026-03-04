@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logbook_app_053/features/logbook/models/log_model.dart';
+import 'package:intl/intl.dart';
 
 class LogItemWidget extends StatelessWidget {
   final LogModel log;
@@ -15,55 +16,56 @@ class LogItemWidget extends StatelessWidget {
     required this.onDelete,
   });
 
+  String _formatDate(String dateString) {
+    try {
+      final DateTime date = DateTime.parse(dateString);
+      // Formatnya 04 Mar 2026, 21:00
+      return DateFormat('dd MMM yyyy, HH:mm').format(date); 
+    } catch (e) {
+      return dateString; // Jaga-jaga kalau format salah
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        title: Row(
-          children: [
-            Expanded(child: Text(log.title)),
-            Chip(
-              label: Text(
-                log.category,
-                style: const TextStyle(fontSize: 12, color: Colors.white),
-              ),
-              backgroundColor: log.category.toLowerCase() == 'pribadi'
-                  ? Colors.blue.shade300
-                  : log.category.toLowerCase() == 'tugas kuliah'
-                      ? Colors.green.shade300
-                      : log.category.toLowerCase() == 'pekerjaan'
-                          ? Colors.orange.shade300
-                          : const Color.fromARGB(255, 255, 0, 0),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            ),
-          ],
-        ),
+        leading: Icon(Icons.cloud_done, color: Colors.blue.shade700, size: 30),
+        title: Text(log.title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
             Text(log.description),
-            const SizedBox(height: 6),
-            Text(
-              log.date,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    log.category,
+                    style: TextStyle(fontSize: 10, color: Colors.blue.shade900, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _formatDate(log.date),
+                  style: const TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic),
+                ),
+              ],
             ),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: onEdit,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: onDelete,
-            ),
+            IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: onEdit),
           ],
         ),
       ),
