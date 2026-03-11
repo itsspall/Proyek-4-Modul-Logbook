@@ -26,14 +26,17 @@ class _LogEditorPageState extends State<LogEditorPage> {
   late TextEditingController _descController;
   
   late String _selectedCategory;
-  final List<String> _categories = ['Pribadi', 'Tugas Kuliah', 'Pekerjaan', 'Urgent'];
+  final List<String> _categories = ['Mechanical', 'Electronic', 'Software'];
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.log?.title ?? '');
     _descController = TextEditingController(text: widget.log?.description ?? '');
-    _selectedCategory = widget.log?.category ?? _categories.first;
+    final incomingCategory = widget.log?.category;
+    _selectedCategory = _categories.contains(incomingCategory)
+        ? incomingCategory!
+        : _categories.first;
     _descController.addListener(() {
       setState(() {});
     });

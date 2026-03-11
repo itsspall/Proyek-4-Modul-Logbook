@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logbook_app_053/features/logbook/log_controller.dart';
 import 'package:logbook_app_053/features/logbook/models/log_model.dart';
 import 'package:logbook_app_053/features/logbook/widgets/log_item_widget.dart';
@@ -48,6 +49,49 @@ class _LogViewState extends State<LogView> {
     );
   }
 
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/images/empty_logs.svg',
+              height: 180,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Belum ada aktivitas hari ini?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Colors.blue.shade900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Mulai catat kemajuan proyek Anda agar tim bisa memantau progres dengan lebih rapi.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: Colors.blueGrey.shade600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: () => _goToEditor(),
+              icon: const Icon(Icons.edit_note_rounded),
+              label: const Text('Tulis Aktivitas Pertama'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +120,7 @@ class _LogViewState extends State<LogView> {
             child: TextField(
               onChanged: (value) => _controller.searchLog(value),
               decoration: InputDecoration(
-                labelText: "Cari Catatan...",
+                labelText: "Cari judul atau isi Markdown...",
                 prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
                 filled: true,
                 fillColor: Colors.white,
@@ -88,48 +132,48 @@ class _LogViewState extends State<LogView> {
           Expanded(
             child: ValueListenableBuilder<List<LogModel>>(
               valueListenable: _controller.filteredLogsNotifier,
-              builder: (context, logs, _) {
-                if (logs.isEmpty) {
-                  return const Center(child: Text("Belum ada catatan. Klik + untuk membuat.", style: TextStyle(color: Colors.grey)));
-                }
+              builder: (context, logs, _) => logs.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      itemCount: logs.length,
+                      separatorBuilder: (_, index) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final log = logs[index];
+                        final sourceIndex = _controller.logsNotifier.value.indexWhere((item) => item.id == log.id);
+                        if (sourceIndex == -1) {
+                          return const SizedBox.shrink();
+                        }
+                        
+                        // PENGECEKAN KEPEMILIKAN DATA
+                        final bool isOwner = log.authorId == currentUser['uid'];
 
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: logs.length,
-                  separatorBuilder: (_, index) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final log = logs[index];
-                    
-                    // PENGECEKAN KEPEMILIKAN DATA
-                    final bool isOwner = log.authorId == currentUser['uid'];
+                        // Boleh Hapus? Boleh Edit?
+                        final bool canDelete = AccessControlService.canPerform(
+                          currentUser['role'], 
+                          AccessControlService.actionDelete, 
+                          isOwner: isOwner
+                        );
+                        
+                        final bool canEdit = AccessControlService.canPerform(
+                          currentUser['role'], 
+                          AccessControlService.actionUpdate, 
+                          isOwner: isOwner
+                        );
 
-                    // Boleh Hapus? Boleh Edit?
-                    final bool canDelete = AccessControlService.canPerform(
-                      currentUser['role'], 
-                      AccessControlService.actionDelete, 
-                      isOwner: isOwner
-                    );
-                    
-                    final bool canEdit = AccessControlService.canPerform(
-                      currentUser['role'], 
-                      AccessControlService.actionUpdate, 
-                      isOwner: isOwner
-                    );
-
-                    return LogItemWidget(
-                      log: log,
-                      index: index,
-                      // Jika boleh, jalankan fungsi. Jika tidak, munculkan peringatan Ditolak!
-                      onEdit: canEdit ? () => _goToEditor(log: log, index: index) : () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Akses Ditolak: Anda bukan pemilik catatan ini."), backgroundColor: Colors.red));
+                        return LogItemWidget(
+                          log: log,
+                          index: index,
+                          // Jika boleh, jalankan fungsi. Jika tidak, munculkan peringatan Ditolak!
+                          onEdit: canEdit ? () => _goToEditor(log: log, index: sourceIndex) : () {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Akses Ditolak: Anda bukan pemilik catatan ini."), backgroundColor: Colors.red));
+                          },
+                          onDelete: canDelete ? () => _controller.removeLog(sourceIndex) : () {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Akses Ditolak: Anda tidak punya wewenang menghapus."), backgroundColor: Colors.red));
+                          },
+                        );
                       },
-                      onDelete: canDelete ? () => _controller.removeLog(index) : () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Akses Ditolak: Anda tidak punya wewenang menghapus."), backgroundColor: Colors.red));
-                      },
-                    );
-                  },
-                );
-              },
+                    ),
             ),
           ),
         ],

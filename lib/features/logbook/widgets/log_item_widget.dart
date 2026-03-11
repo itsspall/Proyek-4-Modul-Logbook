@@ -26,14 +26,35 @@ class LogItemWidget extends StatelessWidget {
     }
   }
 
+  Color _categoryColor(String category) {
+    switch (category) {
+      case 'Mechanical':
+        return Colors.green;
+      case 'Electronic':
+        return Colors.blue;
+      case 'Software':
+        return Colors.deepPurple;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final categoryColor = _categoryColor(log.category);
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Icon(Icons.cloud_done, color: Colors.blue.shade700, size: 30),
+        leading: Container(
+          width: 6,
+          height: 56,
+          decoration: BoxDecoration(
+            color: categoryColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
         title: Text(log.title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,12 +66,12 @@ class LogItemWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
+                    color: categoryColor.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     log.category,
-                    style: TextStyle(fontSize: 10, color: Colors.blue.shade900, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 10, color: categoryColor, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 8),

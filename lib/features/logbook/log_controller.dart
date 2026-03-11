@@ -111,11 +111,12 @@ class LogController {
 
   // FITUR PENCARIAN
   void searchLog(String query) {
-    if (query.isEmpty) {
+    final keyword = query.trim();
+    if (keyword.isEmpty) {
       filteredLogsNotifier.value = logsNotifier.value;
     } else {
       filteredLogsNotifier.value = logsNotifier.value
-          .where((log) => log.title.toLowerCase().contains(query.toLowerCase()))
+          .where((log) => log.title.toLowerCase().contains(keyword.toLowerCase()))
           .toList();
     }
   }
