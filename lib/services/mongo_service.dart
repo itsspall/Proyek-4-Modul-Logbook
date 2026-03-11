@@ -64,24 +64,15 @@ class MongoService {
   }
 
   /// READ
-  Future<List<LogModel>> getLogs() async {
+  Future<List<LogModel>> getLogs(String teamId) async {
     try {
       final collection = await _getSafeCollection();
-
-      await LogHelper.writeLog(
-        "INFO: Fetching data from Cloud...",
-        source: _source,
-        level: 3,
-      );
-
-      final List<Map<String, dynamic>> data = await collection.find().toList();
+      await LogHelper.writeLog("INFO: Fetching data from Cloud for team $teamId...", source: _source, level: 3);
+      final List<Map<String, dynamic>> data = await collection.find(where.eq('teamId', teamId)).toList();
+      
       return data.map((json) => LogModel.fromMap(json)).toList();
     } catch (e) {
-      await LogHelper.writeLog(
-        "ERROR: Fetch Failed - $e",
-        source: _source,
-        level: 1,
-      );
+      await LogHelper.writeLog("ERROR: Fetch Failed - $e", source: _source, level: 1);
       return [];
     }
   }
@@ -113,7 +104,10 @@ class MongoService {
       final collection = await _getSafeCollection();
       if (log.id == null) throw Exception("ID Log tidak ditemukan untuk update");
 
-      await collection.replaceOne(where.id(log.id!), log.toMap());
+      await collection.replaceOne(
+        where.id(ObjectId.fromHexString(log.id!)), 
+        log.toMap()
+      );
 
       await LogHelper.writeLog(
         "DATABASE: Update '${log.title}' Berhasil",
@@ -131,11 +125,10 @@ class MongoService {
   }
 
   /// DELETE
-  Future<void> deleteLog(ObjectId id) async {
+  Future<void> deleteLog(String id) async { 
     try {
       final collection = await _getSafeCollection();
-      await collection.remove(where.id(id));
-
+      await collection.remove(where.id(ObjectId.fromHexString(id)));
       await LogHelper.writeLog(
         "DATABASE: Hapus ID $id Berhasil",
         source: _source,
